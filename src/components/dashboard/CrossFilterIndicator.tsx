@@ -34,19 +34,19 @@ const CrossFilterIndicator = ({ filter, onClear, dashboardType }: CrossFilterInd
   };
 
   return (
-    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Filter className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div className="flex items-center space-x-2">
+          <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           <div>
-            <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+            <h3 className="text-xs font-semibold text-blue-800 dark:text-blue-200">
               Active Filter
             </h3>
-            <div className="flex flex-wrap gap-2 mt-1">
+            <div className="flex flex-wrap gap-1 mt-1">
               {Object.entries(filter).map(([key, value]) => (
                 <span
                   key={key}
-                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200"
                 >
                   {getFilterDisplayName(key, value)}
                 </span>
@@ -58,14 +58,14 @@ const CrossFilterIndicator = ({ filter, onClear, dashboardType }: CrossFilterInd
           variant="ghost"
           size="sm"
           onClick={onClear}
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 h-6 px-2"
         >
-          <X className="h-4 w-4 mr-1" />
-          Clear Filter
+          <X className="h-3 w-3 mr-1" />
+          <span className="text-xs">Clear</span>
         </Button>
       </div>
-      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-        Click on any chart element to filter the dashboard, or click "Clear Filter" to show all data.
+      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+        Click on chart elements to filter data, or click "Clear" to show all.
       </p>
     </div>
   );

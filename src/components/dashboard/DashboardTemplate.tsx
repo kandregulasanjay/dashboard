@@ -68,128 +68,202 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{title}</h1>
-          <p className="text-slate-600 dark:text-slate-300">{description}</p>
+      <div className="h-screen flex flex-col overflow-hidden">
+        <div className="p-4">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{title}</h1>
+          <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
         </div>
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Data</h3>
-          <p className="text-red-600 dark:text-red-300">{error}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 max-w-md">
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Data</h3>
+            <p className="text-red-600 dark:text-red-300">{error}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{title}</h1>
-        <p className="text-slate-600 dark:text-slate-300">{description}</p>
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Compact Header */}
+      <div className="flex-shrink-0 p-4 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
+            <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <DashboardFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        isLoading={isLoading}
-      />
+      {/* Compact Filters */}
+      <div className="flex-shrink-0 px-4 pb-2">
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Filters</h2>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              {/* Month Filter */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Month</label>
+                <select 
+                  value={filters.month} 
+                  onChange={(e) => setFilters({...filters, month: parseInt(e.target.value)})}
+                  disabled={isLoading}
+                  className="w-full sm:w-[120px] h-8 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2"
+                >
+                  {Array.from({length: 12}, (_, i) => (
+                    <option key={i+1} value={i+1}>
+                      {new Date(0, i).toLocaleString('default', { month: 'short' })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Year Filter */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Year</label>
+                <select 
+                  value={filters.year} 
+                  onChange={(e) => setFilters({...filters, year: parseInt(e.target.value)})}
+                  disabled={isLoading}
+                  className="w-full sm:w-[80px] h-8 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2"
+                >
+                  {Array.from({length: 5}, (_, i) => {
+                    const year = currentDate.getFullYear() - 2 + i;
+                    return <option key={year} value={year}>{year}</option>
+                  })}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Cross Filter Indicator */}
       {crossFilter && (
-        <CrossFilterIndicator
-          filter={crossFilter}
-          onClear={clearCrossFilter}
-          dashboardType={type}
-        />
+        <div className="flex-shrink-0 px-4 pb-2">
+          <CrossFilterIndicator
+            filter={crossFilter}
+            onClear={clearCrossFilter}
+            dashboardType={type}
+          />
+        </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {data.kpis.map((kpi, index) => {
-          const IconComponent = iconMap[kpi.icon as keyof typeof iconMap];
-          return (
-            <KPICard
-              key={index}
-              title={kpi.title}
-              value={kpi.value}
-              previousValue={kpi.previous_value}
-              trend={kpi.trend}
-              trendValue={kpi.trend_value}
-              icon={IconComponent ? <IconComponent size={20} /> : <Activity size={20} />}
-            />
-          );
-        })}
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {data.charts.map((chart, index) => {
-          const chartElement = renderChart(chart, (dataPoint) => handleChartClick(chart.name, dataPoint));
-          return (
-            <div key={index} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{chart.name}</h3>
-              {isLoading ? (
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-auto px-4 pb-4">
+        <div className="space-y-3">
+          {/* Compact KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {data.kpis.slice(0, 5).map((kpi, index) => {
+              const IconComponent = iconMap[kpi.icon as keyof typeof iconMap];
+              return (
+                <div key={index} className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">{kpi.title}</h3>
+                    {IconComponent && <IconComponent size={14} className="text-slate-400 dark:text-slate-500 flex-shrink-0" />}
+                  </div>
+                  
+                  <div className="flex items-end justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-lg font-bold text-slate-900 dark:text-white truncate">
+                        {typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}
+                      </div>
+                      {kpi.previous_value && (
+                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          Prev: {typeof kpi.previous_value === 'number' ? kpi.previous_value.toLocaleString() : kpi.previous_value}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {kpi.trend_value && (
+                      <div className={`flex items-center space-x-1 flex-shrink-0 ml-2 ${
+                        kpi.trend === 'up' ? 'text-green-600' : kpi.trend === 'down' ? 'text-red-600' : 'text-slate-600'
+                      }`}>
+                        <span className="text-xs font-medium">{kpi.trend_value}</span>
+                        <span className="text-xs">{kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→'}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : !chart.data || chart.data.length === 0 ? (
-                <div className="h-[300px] flex items-center justify-center flex-col">
-                  <div className="text-slate-400 dark:text-slate-500 mb-2">No data available</div>
-                  <div className="text-sm text-slate-400 dark:text-slate-500">Please check if data exists for the selected period</div>
-                </div>
-              ) : chartElement ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  {chartElement}
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-slate-400 dark:text-slate-500">
-                  Unsupported chart type
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Data Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-          {type === 'fleet' ? 'Vehicle Performance Overview' : 
-           type === 'afterSales' ? 'Service Tickets Overview' : 
-           'Sales Team Performance'}
-        </h3>
-        {isLoading ? (
-          <div className="h-32 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              );
+            })}
           </div>
-        ) : (
-          <div
-            className={`overflow-x-auto ${
-              data.table.rows.length >= 10 ? 'max-h-96 overflow-y-auto' : ''
-            }`}
-          >
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-700">
-                  {data.table.headers.map((header, index) => (
-                    <th key={index} className="text-left py-3 px-4 font-medium text-slate-600 dark:text-slate-300">
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.table.rows.map((row, rowIndex) => (
-                  <tr key={rowIndex} className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700">
-                    {renderTableRow(row, type, rowIndex)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          {/* Compact Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {data.charts.map((chart, index) => {
+              const chartElement = renderChart(chart, (dataPoint) => handleChartClick(chart.name, dataPoint));
+              return (
+                <div key={index} className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 truncate">{chart.name}</h3>
+                  {isLoading ? (
+                    <div className="h-[200px] flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  ) : !chart.data || chart.data.length === 0 ? (
+                    <div className="h-[200px] flex items-center justify-center flex-col">
+                      <div className="text-slate-400 dark:text-slate-500 mb-1 text-sm">No data available</div>
+                      <div className="text-xs text-slate-400 dark:text-slate-500">Check if data exists for selected period</div>
+                    </div>
+                  ) : chartElement ? (
+                    <ResponsiveContainer width="100%" height={200}>
+                      {chartElement}
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[200px] flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm">
+                      Unsupported chart type
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
+
+          {/* Compact Data Table */}
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
+              {type === 'fleet' ? 'Vehicle Performance Overview' : 
+               type === 'afterSales' ? 'Service Tickets Overview' : 
+               'Sales Team Performance'}
+            </h3>
+            {isLoading ? (
+              <div className="h-24 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-white dark:bg-slate-800">
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      {data.table.headers.map((header, index) => (
+                        <th key={index} className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-300">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.table.rows.slice(0, 10).map((row, rowIndex) => (
+                      <tr key={rowIndex} className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700">
+                        {renderTableRow(row, type, rowIndex)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {data.table.rows.length > 10 && (
+                  <div className="text-xs text-slate-500 dark:text-slate-400 text-center py-2">
+                    Showing 10 of {data.table.rows.length} records
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -228,21 +302,22 @@ const renderChart = (chart: ChartData, onChartClick: (dataPoint: any) => void) =
       return (
         <LineChart data={chart.data} onClick={onChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="data_point_name" stroke="#64748b" />
-          <YAxis stroke="#64748b" />
+          <XAxis dataKey="data_point_name" stroke="#64748b" fontSize={10} />
+          <YAxis stroke="#64748b" fontSize={10} />
           <Tooltip 
             contentStyle={{ 
               backgroundColor: '#ffffff', 
               border: '1px solid #e2e8f0',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              fontSize: '12px'
             }} 
           />
           <Line 
             type="monotone" 
             dataKey="data_point_value"
             stroke="#2563EB" 
-            strokeWidth={3}
-            dot={{ fill: '#2563EB', strokeWidth: 2, r: 4 }}
+            strokeWidth={2}
+            dot={{ fill: '#2563EB', strokeWidth: 2, r: 3 }}
           />
         </LineChart>
       );
@@ -253,9 +328,9 @@ const renderChart = (chart: ChartData, onChartClick: (dataPoint: any) => void) =
             data={chart.data}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={120}
-            paddingAngle={5}
+            innerRadius={40}
+            outerRadius={80}
+            paddingAngle={2}
             dataKey="data_point_value"
           >
             {chart.data.map((entry, i) => (
@@ -266,26 +341,27 @@ const renderChart = (chart: ChartData, onChartClick: (dataPoint: any) => void) =
               />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip contentStyle={{ fontSize: '12px' }} />
         </PieChart>
       );
     case 'bar':
       return (
         <BarChart data={chart.data} onClick={onChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="data_point_name" stroke="#64748b" />
-          <YAxis stroke="#64748b" />
+          <XAxis dataKey="data_point_name" stroke="#64748b" fontSize={10} />
+          <YAxis stroke="#64748b" fontSize={10} />
           <Tooltip 
             contentStyle={{ 
               backgroundColor: '#ffffff', 
               border: '1px solid #e2e8f0',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              fontSize: '12px'
             }} 
           />
           <Bar 
             dataKey="data_point_value" 
             fill="#2563EB" 
-            radius={[4, 4, 0, 0]}
+            radius={[2, 2, 0, 0]}
             style={{ cursor: 'pointer' }}
           />
         </BarChart>
@@ -294,13 +370,14 @@ const renderChart = (chart: ChartData, onChartClick: (dataPoint: any) => void) =
       return (
         <AreaChart data={chart.data} onClick={onChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="data_point_name" stroke="#64748b" />
-          <YAxis stroke="#64748b" />
+          <XAxis dataKey="data_point_name" stroke="#64748b" fontSize={10} />
+          <YAxis stroke="#64748b" fontSize={10} />
           <Tooltip 
             contentStyle={{ 
               backgroundColor: '#ffffff', 
               border: '1px solid #e2e8f0',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              fontSize: '12px'
             }} 
           />
           <Area 
@@ -339,8 +416,8 @@ const renderTableRow = (row: TableRow, type: string, index: number) => {
     case 'fleet':
       return (
         <>
-          <td className="py-4 px-4 text-slate-900 dark:text-white font-medium">{row['Vehicle']}</td>
-          <td className="py-4 px-4">
+          <td className="py-2 px-3 text-slate-900 dark:text-white font-medium">{row['Vehicle']}</td>
+          <td className="py-2 px-3">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               row['Status'] === 'Active' 
                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -351,20 +428,20 @@ const renderTableRow = (row: TableRow, type: string, index: number) => {
               {row['Status']}
             </span>
           </td>
-          <td className="py-4 px-4">
+          <td className="py-2 px-3">
             <div className="flex items-center space-x-2">
-              <span className="text-slate-900 dark:text-white font-medium">{row['Uptime (%)']}</span>
-              <div className="w-20 bg-slate-200 dark:bg-slate-600 rounded-full h-2">
+              <span className="text-slate-900 dark:text-white font-medium text-xs">{row['Uptime (%)']}</span>
+              <div className="w-16 bg-slate-200 dark:bg-slate-600 rounded-full h-1.5">
                 <div 
-                  className="bg-secondary h-2 rounded-full" 
+                  className="bg-secondary h-1.5 rounded-full" 
                   style={{ width: `${numericValue(row['Uptime (%)'])}%` }}
                 ></div>
               </div>
             </div>
           </td>
-          <td className="py-4 px-4 text-slate-900 dark:text-white">₹{numericValue(row['Maintenance Cost']).toLocaleString()}</td>
-          <td className="py-4 px-4">
-            <span className={`text-sm font-medium ${
+          <td className="py-2 px-3 text-slate-900 dark:text-white text-xs">₹{numericValue(row['Maintenance Cost']).toLocaleString()}</td>
+          <td className="py-2 px-3">
+            <span className={`text-xs font-medium ${
               numericValue(row['Target vs Actual']) >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               {numericValue(row['Target vs Actual']) >= 0 ? '✅' : '❌'} 
@@ -377,8 +454,8 @@ const renderTableRow = (row: TableRow, type: string, index: number) => {
     case 'afterSales':
       return (
         <>
-          <td className="py-4 px-4 text-slate-900 dark:text-white font-medium">{row['Ticket ID']}</td>
-          <td className="py-4 px-4">
+          <td className="py-2 px-3 text-slate-900 dark:text-white font-medium text-xs">{row['Ticket ID']}</td>
+          <td className="py-2 px-3">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               row['Status'] === 'Completed' 
                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -389,18 +466,18 @@ const renderTableRow = (row: TableRow, type: string, index: number) => {
               {row['Status']}
             </span>
           </td>
-          <td className="py-4 px-4 text-slate-900 dark:text-white">{row['Resolution Time']}</td>
-          <td className="py-4 px-4">
-            <span className={`font-medium ${numericValue(row['Profit']) > 0 ? 'text-green-600' : 'text-gray-500'}`}>
+          <td className="py-2 px-3 text-slate-900 dark:text-white text-xs">{row['Resolution Time']}</td>
+          <td className="py-2 px-3">
+            <span className={`font-medium text-xs ${numericValue(row['Profit']) > 0 ? 'text-green-600' : 'text-gray-500'}`}>
               {numericValue(row['Profit']) > 0 ? `₹${numericValue(row['Profit']).toLocaleString()}` : '-'}
             </span>
           </td>
-          <td className="py-4 px-4">
+          <td className="py-2 px-3">
             <div className="flex items-center space-x-2">
-              <span className="text-slate-900 dark:text-white font-medium">{row['SLA Compliance']}%</span>
-              <div className="w-16 bg-slate-200 dark:bg-slate-600 rounded-full h-2">
+              <span className="text-slate-900 dark:text-white font-medium text-xs">{row['SLA Compliance']}%</span>
+              <div className="w-12 bg-slate-200 dark:bg-slate-600 rounded-full h-1.5">
                 <div 
-                  className={`h-2 rounded-full ${numericValue(row['SLA Compliance']) >= 90 ? 'bg-green-500' : numericValue(row['SLA Compliance']) >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  className={`h-1.5 rounded-full ${numericValue(row['SLA Compliance']) >= 90 ? 'bg-green-500' : numericValue(row['SLA Compliance']) >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
                   style={{ width: `${numericValue(row['SLA Compliance'])}%` }}
                 ></div>
               </div>
@@ -412,36 +489,36 @@ const renderTableRow = (row: TableRow, type: string, index: number) => {
     case 'sales':
       return (
         <>
-          <td className="py-4 px-4">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-medium">
+          <td className="py-2 px-3">
+            <div className="flex items-center space-x-2">
+              <div className="flex-shrink-0 w-6 h-6 bg-secondary rounded-full flex items-center justify-center text-white text-xs font-medium">
                 {stringValue(row['Sales Rep']).charAt(0)}
               </div>
-              <span className="text-slate-900 dark:text-white font-medium">{row['Sales Rep']}</span>
+              <span className="text-slate-900 dark:text-white font-medium text-xs truncate">{row['Sales Rep']}</span>
             </div>
           </td>
-          <td className="py-4 px-4 text-slate-900 dark:text-white font-medium">{row['Deals Closed']}</td>
-          <td className="py-4 px-4 text-slate-900 dark:text-white">₹{(numericValue(row['Revenue'])/100000).toFixed(1)}L</td>
-          <td className="py-4 px-4">
-            <span className={`flex items-center space-x-1 font-medium ${
+          <td className="py-2 px-3 text-slate-900 dark:text-white font-medium text-xs">{row['Deals Closed']}</td>
+          <td className="py-2 px-3 text-slate-900 dark:text-white text-xs">₹{(numericValue(row['Revenue'])/100000).toFixed(1)}L</td>
+          <td className="py-2 px-3">
+            <span className={`flex items-center space-x-1 font-medium text-xs ${
               numericValue(row['MoM Growth']) >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               <span>{numericValue(row['MoM Growth']) >= 0 ? '+' : ''}{row['MoM Growth']}%</span>
               {numericValue(row['MoM Growth']) >= 0 ? '↑' : '↓'}
             </span>
           </td>
-          <td className="py-4 px-4">
+          <td className="py-2 px-3">
             <div className="flex items-center space-x-2">
-              <span className="text-slate-900 dark:text-white font-medium">{row['Target Achievement']}%</span>
-              <div className="w-20 bg-slate-200 dark:bg-slate-600 rounded-full h-2">
+              <span className="text-slate-900 dark:text-white font-medium text-xs">{row['Target Achievement']}%</span>
+              <div className="w-16 bg-slate-200 dark:bg-slate-600 rounded-full h-1.5">
                 <div 
-                  className={`h-2 rounded-full ${
+                  className={`h-1.5 rounded-full ${
                     numericValue(row['Target Achievement']) >= 100 ? 'bg-green-500' : numericValue(row['Target Achievement']) >= 80 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
                   style={{ width: `${Math.min(numericValue(row['Target Achievement']), 100)}%` }}
                 ></div>
               </div>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs">
                 {numericValue(row['Target Achievement']) >= 100 ? '🎯' : numericValue(row['Target Achievement']) >= 80 ? '📈' : '📉'}
               </span>
             </div>
