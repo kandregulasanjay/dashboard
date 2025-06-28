@@ -84,26 +84,27 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Compact Header */}
+      {/* Header with Title and Filters Side by Side */}
       <div className="flex-shrink-0 p-4 pb-2">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          {/* Title Section */}
+          <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
             <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
           </div>
+          
+          {/* Filters Section */}
+          <div className="flex-shrink-0 lg:max-w-2xl">
+            <DashboardFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              isLoading={isLoading}
+              crossFilter={crossFilter}
+              onClearCrossFilter={clearCrossFilter}
+              dashboardType={type}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Integrated Filters with Cross Filter Display */}
-      <div className="flex-shrink-0 px-4 pb-2">
-        <DashboardFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          isLoading={isLoading}
-          crossFilter={crossFilter}
-          onClearCrossFilter={clearCrossFilter}
-          dashboardType={type}
-        />
       </div>
 
       {/* Main Content Area */}

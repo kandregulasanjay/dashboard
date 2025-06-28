@@ -83,19 +83,18 @@ const DashboardFilters = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700">
+    <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700 w-full">
       <div className="flex flex-col gap-3">
         {/* Header with Filters Title */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Filters</h2>
-          </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Filters</h2>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        {/* Filter Controls and Active Filters in One Row */}
+        <div className="flex flex-col xl:flex-row gap-3 items-start xl:items-center justify-between">
+          {/* Basic Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-3">
             {/* Month Filter */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Month</label>
@@ -133,7 +132,7 @@ const DashboardFilters = ({
 
           {/* Active Cross Filters Display */}
           {crossFilter && Object.keys(crossFilter).length > 0 && (
-            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2 flex-wrap">
               <Filter className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
               <div className="flex flex-wrap gap-1">
                 {Object.entries(crossFilter).map(([key, value]) => (
