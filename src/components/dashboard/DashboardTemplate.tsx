@@ -43,6 +43,43 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
 
   const { data, isLoading, error } = useDashboardData(type, filterParams);
 
+  // Generate dynamic title based on filters and cross-filters
+  const getDynamicTitle = () => {
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    let dynamicTitle = title;
+    let dynamicDescription = description;
+
+    // Add month/year context
+    const monthName = monthNames[filters.month - 1];
+    dynamicTitle = `${title} - ${monthName} ${filters.year}`;
+
+    // Add cross-filter context
+    if (crossFilter && Object.keys(crossFilter).length > 0) {
+      const filterDescriptions = Object.entries(crossFilter).map(([key, value]) => {
+        const displayNames: { [key: string]: string } = {
+          vehicle_id: 'Vehicle',
+          status: 'Status',
+          region: 'Region',
+          product: 'Product',
+          vehicle_type: 'Vehicle Type',
+          stage: 'Stage'
+        };
+        const displayName = displayNames[key] || key;
+        return `${displayName}: ${value}`;
+      });
+      
+      dynamicDescription = `${description} (Filtered by ${filterDescriptions.join(', ')})`;
+    } else {
+      dynamicDescription = `${description} for ${monthName} ${filters.year}`;
+    }
+
+    return { dynamicTitle, dynamicDescription };
+  };
+
   const handleChartClick = (chartName: string, dataPoint: any) => {
     if (!dataPoint || !dataPoint.activePayload) return;
     
@@ -65,12 +102,14 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
     setCrossFilter(null);
   };
 
+  const { dynamicTitle, dynamicDescription } = getDynamicTitle();
+
   if (error) {
     return (
       <div className="h-screen flex flex-col overflow-hidden">
         <div className="p-4">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{title}</h1>
-          <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{dynamicTitle}</h1>
+          <p className="text-slate-600 dark:text-slate-300 text-sm">{dynamicDescription}</p>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 max-w-md">
@@ -84,14 +123,26 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Combined Header Card with Title and Filters */}
+      {/* Combined Header Card with Dynamic Title and Filters */}
       <div className="flex-shrink-0 p-4 pb-2">
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* Title Section */}
+            {/* Dynamic Title Section */}
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
-              <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{dynamicTitle}</h1>
+              <p className="text-slate-600 dark:text-slate-300 text-sm">{dynamicDescription}</p>
+              
+              {/* Data Summary */}
+              {!isLoading && data.kpis.length > 0 && (
+                <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span>📊 {data.kpis.length} KPIs</span>
+                  <span>📈 {data.charts.length} Charts</span>
+                  <span>📋 {data.table.rows.length} Records</span>
+                  {crossFilter && Object.keys(crossFilter).length > 0 && (
+                    <span className="text-blue-600 dark:text-blue-400">🔍 Filtered View</span>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Filters Section */}
