@@ -5,7 +5,6 @@ import DashboardFilters, { FilterState } from './DashboardFilters';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { ChartData, TableRow } from '@/services/api';
-import CrossFilterIndicator from './CrossFilterIndicator';
 
 // Icon mapping
 const iconMap = {
@@ -95,64 +94,17 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
         </div>
       </div>
 
-      {/* Compact Filters */}
+      {/* Integrated Filters with Cross Filter Display */}
       <div className="flex-shrink-0 px-4 pb-2">
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700">
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Filters</h2>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {/* Month Filter */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Month</label>
-                <select 
-                  value={filters.month} 
-                  onChange={(e) => setFilters({...filters, month: parseInt(e.target.value)})}
-                  disabled={isLoading}
-                  className="w-full sm:w-[120px] h-8 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2"
-                >
-                  {Array.from({length: 12}, (_, i) => (
-                    <option key={i+1} value={i+1}>
-                      {new Date(0, i).toLocaleString('default', { month: 'short' })}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Year Filter */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Year</label>
-                <select 
-                  value={filters.year} 
-                  onChange={(e) => setFilters({...filters, year: parseInt(e.target.value)})}
-                  disabled={isLoading}
-                  className="w-full sm:w-[80px] h-8 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2"
-                >
-                  {Array.from({length: 5}, (_, i) => {
-                    const year = currentDate.getFullYear() - 2 + i;
-                    return <option key={year} value={year}>{year}</option>
-                  })}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DashboardFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          isLoading={isLoading}
+          crossFilter={crossFilter}
+          onClearCrossFilter={clearCrossFilter}
+          dashboardType={type}
+        />
       </div>
-
-      {/* Cross Filter Indicator */}
-      {crossFilter && (
-        <div className="flex-shrink-0 px-4 pb-2">
-          <CrossFilterIndicator
-            filter={crossFilter}
-            onClear={clearCrossFilter}
-            dashboardType={type}
-          />
-        </div>
-      )}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto px-4 pb-4">
