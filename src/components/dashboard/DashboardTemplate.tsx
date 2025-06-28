@@ -84,25 +84,28 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Header with Title and Filters Side by Side */}
+      {/* Combined Header Card with Title and Filters */}
       <div className="flex-shrink-0 p-4 pb-2">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Title Section */}
-          <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
-            <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
-          </div>
-          
-          {/* Filters Section */}
-          <div className="flex-shrink-0 lg:max-w-2xl">
-            <DashboardFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-              isLoading={isLoading}
-              crossFilter={crossFilter}
-              onClearCrossFilter={clearCrossFilter}
-              dashboardType={type}
-            />
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Title Section */}
+            <div className="flex-shrink-0">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
+              <p className="text-slate-600 dark:text-slate-300 text-sm">{description}</p>
+            </div>
+            
+            {/* Filters Section */}
+            <div className="flex-shrink-0 lg:max-w-2xl">
+              <DashboardFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                isLoading={isLoading}
+                crossFilter={crossFilter}
+                onClearCrossFilter={clearCrossFilter}
+                dashboardType={type}
+                showCard={false} // Don't show the card wrapper since we're already in a card
+              />
+            </div>
           </div>
         </div>
       </div>
