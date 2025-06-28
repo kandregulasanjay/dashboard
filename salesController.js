@@ -56,6 +56,11 @@ exports.getSalesGrowthChart = async (req, res) => {
       params.push(crossFilters.product);
       paramIndex++;
     }
+    if (crossFilters.stage) {
+      whereClause += ` AND stage = @param${paramIndex}`;
+      params.push(crossFilters.stage);
+      paramIndex++;
+    }
 
     const rows = await db.executeQuery(
       `SELECT * FROM chart_data ${whereClause}`,

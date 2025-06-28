@@ -56,6 +56,11 @@ exports.getUtilizationChart = async (req, res) => {
       params.push(crossFilters.region);
       paramIndex++;
     }
+    if (crossFilters.vehicle_id) {
+      whereClause += ` AND vehicle_id = @param${paramIndex}`;
+      params.push(crossFilters.vehicle_id);
+      paramIndex++;
+    }
 
     const rows = await db.executeQuery(
       `SELECT * FROM chart_data ${whereClause}`,
@@ -68,7 +73,8 @@ exports.getUtilizationChart = async (req, res) => {
       data: rows.map(row => ({
         data_point_name: row.data_point_name,
         data_point_value: row.data_point_value,
-        additional_value: row.additional_value
+        additional_value: row.additional_value,
+        color: row.color
       }))
     });
   } catch (error) {
@@ -136,6 +142,11 @@ exports.getMaintenanceChart = async (req, res) => {
       params.push(crossFilters.status);
       paramIndex++;
     }
+    if (crossFilters.region) {
+      whereClause += ` AND region = @param${paramIndex}`;
+      params.push(crossFilters.region);
+      paramIndex++;
+    }
 
     const rows = await db.executeQuery(
       `SELECT * FROM chart_data ${whereClause}`,
@@ -187,7 +198,8 @@ exports.getRegionalChart = async (req, res) => {
       chart_type: "area",
       data: rows.map(row => ({
         data_point_name: row.data_point_name,
-        data_point_value: row.data_point_value
+        data_point_value: row.data_point_value,
+        additional_value: row.additional_value
       }))
     });
   } catch (error) {
