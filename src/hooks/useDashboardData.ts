@@ -20,7 +20,18 @@ export const useDashboardData = (
   const [error, setError] = useState<string | null>(null);
 
   // Memoize filter params to prevent unnecessary re-renders
-  const memoizedFilters = useMemo(() => filters, [filters.month, filters.year]);
+  const memoizedFilters = useMemo(() => {
+    // Create a stable object reference for filters
+    const baseFilters = { month: filters.month, year: filters.year };
+    const additionalFilters = Object.keys(filters)
+      .filter(key => !['month', 'year'].includes(key))
+      .reduce((acc, key) => {
+        acc[key] = filters[key];
+        return acc;
+      }, {} as { [key: string]: string | number });
+    
+    return { ...baseFilters, ...additionalFilters };
+  }, [filters.month, filters.year, JSON.stringify(filters)]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -41,12 +52,12 @@ export const useDashboardData = (
             regionalChart,
             tableData
           ] = await Promise.all([
-            api.fleet.getKPIs(filters),
-            api.fleet.getUtilizationChart(filters),
-            api.fleet.getVehicleTypesChart(filters),
-            api.fleet.getMaintenanceChart(filters),
-            api.fleet.getRegionalChart(filters),
-            api.fleet.getVehicleTable(filters)
+            api.fleet.getKPIs(memoizedFilters),
+            api.fleet.getUtilizationChart(memoizedFilters),
+            api.fleet.getVehicleTypesChart(memoizedFilters),
+            api.fleet.getMaintenanceChart(memoizedFilters),
+            api.fleet.getRegionalChart(memoizedFilters),
+            api.fleet.getVehicleTable(memoizedFilters)
           ]);
 
           console.log('Fleet API Responses:', {
@@ -55,7 +66,7 @@ export const useDashboardData = (
             vehicleTypesChart,
             maintenanceChart,
             regionalChart,
-            filters
+            filters: memoizedFilters
           });
 
           kpis = kpisData;
@@ -78,12 +89,12 @@ export const useDashboardData = (
             regionalDowntimeChart,
             tableData
           ] = await Promise.all([
-            api.afterSales.getKPIs(filters),
-            api.afterSales.getRevenueChart(filters),
-            api.afterSales.getTicketStatusChart(filters),
-            api.afterSales.getCostByVehicleChart(filters),
-            api.afterSales.getRegionalDowntimeChart(filters),
-            api.afterSales.getTicketsTable(filters)
+            api.afterSales.getKPIs(memoizedFilters),
+            api.afterSales.getRevenueChart(memoizedFilters),
+            api.afterSales.getTicketStatusChart(memoizedFilters),
+            api.afterSales.getCostByVehicleChart(memoizedFilters),
+            api.afterSales.getRegionalDowntimeChart(memoizedFilters),
+            api.afterSales.getTicketsTable(memoizedFilters)
           ]);
 
           console.log('AfterSales API Responses:', {
@@ -92,7 +103,7 @@ export const useDashboardData = (
             ticketStatusChart,
             costByVehicleChart,
             regionalDowntimeChart,
-            filters
+            filters: memoizedFilters
           });
 
           kpis = kpisData;
@@ -115,12 +126,12 @@ export const useDashboardData = (
             conversionFunnelChart,
             tableData
           ] = await Promise.all([
-            api.sales.getKPIs(filters),
-            api.sales.getSalesGrowthChart(filters),
-            api.sales.getProductSalesChart(filters),
-            api.sales.getRegionSalesChart(filters),
-            api.sales.getConversionFunnelChart(filters),
-            api.sales.getSalesRepTable(filters)
+            api.sales.getKPIs(memoizedFilters),
+            api.sales.getSalesGrowthChart(memoizedFilters),
+            api.sales.getProductSalesChart(memoizedFilters),
+            api.sales.getRegionSalesChart(memoizedFilters),
+            api.sales.getConversionFunnelChart(memoizedFilters),
+            api.sales.getSalesRepTable(memoizedFilters)
           ]);
 
           console.log('Sales API Responses:', {
@@ -129,7 +140,7 @@ export const useDashboardData = (
             productSalesChart,
             regionSalesChart,
             conversionFunnelChart,
-            filters
+            filters: memoizedFilters
           });
 
           kpis = kpisData;
@@ -163,4 +174,4 @@ export const useDashboardData = (
   }, [fetchData]);
 
   return { data, isLoading, error, refetch: fetchData };
-}; 
+};

@@ -12,6 +12,7 @@ const axiosInstance = axios.create({
 export interface FilterParams {
   month: number;
   year: number;
+  [key: string]: string | number; // Allow additional filter parameters for cross-filtering
 }
 
 export interface KPIData {

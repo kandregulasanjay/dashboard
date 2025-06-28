@@ -5,6 +5,7 @@ import DashboardFilters, { FilterState } from './DashboardFilters';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { ChartData, TableRow } from '@/services/api';
+import CrossFilterIndicator from './CrossFilterIndicator';
 
 // Icon mapping
 const iconMap = {
@@ -43,6 +44,28 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
 
   const { data, isLoading, error } = useDashboardData(type, filterParams);
 
+  const handleChartClick = (chartName: string, dataPoint: any) => {
+    if (!dataPoint || !dataPoint.activePayload) return;
+    
+    const payload = dataPoint.activePayload[0]?.payload;
+    if (!payload) return;
+
+    const filterKey = getFilterKeyForChart(chartName, type);
+    const filterValue = payload.data_point_name;
+
+    if (crossFilter && crossFilter[filterKey] === filterValue) {
+      // Remove filter if clicking the same item
+      setCrossFilter(null);
+    } else {
+      // Apply new filter
+      setCrossFilter({ [filterKey]: filterValue });
+    }
+  };
+
+  const clearCrossFilter = () => {
+    setCrossFilter(null);
+  };
+
   if (error) {
     return (
       <div className="space-y-6">
@@ -73,6 +96,15 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
         isLoading={isLoading}
       />
 
+      {/* Cross Filter Indicator */}
+      {crossFilter && (
+        <CrossFilterIndicator
+          filter={crossFilter}
+          onClear={clearCrossFilter}
+          dashboardType={type}
+        />
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {data.kpis.map((kpi, index) => {
@@ -94,7 +126,7 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {data.charts.map((chart, index) => {
-          const chartElement = renderChart(chart);
+          const chartElement = renderChart(chart, (dataPoint) => handleChartClick(chart.name, dataPoint));
           return (
             <div key={index} className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{chart.name}</h3>
@@ -163,12 +195,38 @@ const DashboardTemplate = ({ type, title, description }: DashboardTemplateProps)
   );
 };
 
-// Helper function to render different chart types
-const renderChart = (chart: ChartData) => {
+// Helper function to get filter key based on chart name and dashboard type
+const getFilterKeyForChart = (chartName: string, dashboardType: string): string => {
+  const chartFilterMap: { [key: string]: { [key: string]: string } } = {
+    fleet: {
+      'Fleet Utilization Trend': 'vehicle_id',
+      'Vehicle Types Breakdown': 'status',
+      'Maintenance Costs vs Target': 'vehicle_id',
+      'Regional Vehicle Activity': 'region'
+    },
+    afterSales: {
+      'Revenue Trend': 'month',
+      'Ticket Status Distribution': 'status',
+      'Service Costs by Vehicle Type': 'vehicle_type',
+      'Average Downtime by Region': 'region'
+    },
+    sales: {
+      'Sales Growth (YoY)': 'month',
+      'Product-wise Sales Distribution': 'product',
+      'Sales by Region vs Target': 'region',
+      'Lead to Sales Funnel': 'stage'
+    }
+  };
+
+  return chartFilterMap[dashboardType]?.[chartName] || 'category';
+};
+
+// Helper function to render different chart types with click handlers
+const renderChart = (chart: ChartData, onChartClick: (dataPoint: any) => void) => {
   switch (chart.chart_type) {
     case 'line':
       return (
-        <LineChart data={chart.data}>
+        <LineChart data={chart.data} onClick={onChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="data_point_name" stroke="#64748b" />
           <YAxis stroke="#64748b" />
@@ -190,7 +248,7 @@ const renderChart = (chart: ChartData) => {
       );
     case 'pie':
       return (
-        <PieChart>
+        <PieChart onClick={onChartClick}>
           <Pie
             data={chart.data}
             cx="50%"
@@ -201,7 +259,11 @@ const renderChart = (chart: ChartData) => {
             dataKey="data_point_value"
           >
             {chart.data.map((entry, i) => (
-              <Cell key={`cell-${i}`} fill={entry.color || '#2563EB'} />
+              <Cell 
+                key={`cell-${i}`} 
+                fill={entry.color || '#2563EB'} 
+                style={{ cursor: 'pointer' }}
+              />
             ))}
           </Pie>
           <Tooltip />
@@ -209,7 +271,7 @@ const renderChart = (chart: ChartData) => {
       );
     case 'bar':
       return (
-        <BarChart data={chart.data}>
+        <BarChart data={chart.data} onClick={onChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="data_point_name" stroke="#64748b" />
           <YAxis stroke="#64748b" />
@@ -220,12 +282,17 @@ const renderChart = (chart: ChartData) => {
               borderRadius: '8px'
             }} 
           />
-          <Bar dataKey="data_point_value" fill="#2563EB" radius={[4, 4, 0, 0]} />
+          <Bar 
+            dataKey="data_point_value" 
+            fill="#2563EB" 
+            radius={[4, 4, 0, 0]}
+            style={{ cursor: 'pointer' }}
+          />
         </BarChart>
       );
     case 'area':
       return (
-        <AreaChart data={chart.data}>
+        <AreaChart data={chart.data} onClick={onChartClick}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="data_point_name" stroke="#64748b" />
           <YAxis stroke="#64748b" />
@@ -236,9 +303,25 @@ const renderChart = (chart: ChartData) => {
               borderRadius: '8px'
             }} 
           />
-          <Area type="monotone" dataKey="data_point_value" stackId="1" stroke="#2563EB" fill="#2563EB" fillOpacity={0.6} />
+          <Area 
+            type="monotone" 
+            dataKey="data_point_value" 
+            stackId="1" 
+            stroke="#2563EB" 
+            fill="#2563EB" 
+            fillOpacity={0.6}
+            style={{ cursor: 'pointer' }}
+          />
           {chart.data[0]?.additional_value !== undefined && (
-            <Area type="monotone" dataKey="additional_value" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.6} />
+            <Area 
+              type="monotone" 
+              dataKey="additional_value" 
+              stackId="1" 
+              stroke="#10B981" 
+              fill="#10B981" 
+              fillOpacity={0.6}
+              style={{ cursor: 'pointer' }}
+            />
           )}
         </AreaChart>
       );
